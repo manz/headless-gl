@@ -1,5 +1,5 @@
 {
-  "name": "gl",
+  "name": "napi-gl",
   "version": "8.1.6",
   "description": "Creates a WebGL context without a window",
   "main": "index.js",
