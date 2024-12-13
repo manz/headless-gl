@@ -14,11 +14,11 @@
         'VERSION=1.0.0'
       ],
       'sources': [
-          'src/native/bindings.cc',
-          'src/native/webgl.cc',
-          'src/native/procs.cc'
+          'src/native/napibindings.cc',
+          'src/native/webglnapi.cc'
       ],
       'include_dirs': [
+        "<!(node -e \"console.log(require('node-addon-api').include_dir)\")",
         "<!(node -e \"require('nan')\")",
         '<(module_root_dir)/deps/include',
         "angle/include"
@@ -42,7 +42,7 @@
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
               'MACOSX_DEPLOYMENT_TARGET':'10.8',
               'CLANG_CXX_LIBRARY': 'libc++',
-              'CLANG_CXX_LANGUAGE_STANDARD':'c++17',
+              'CLANG_CXX_LANGUAGE_STANDARD':'c++20',
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
             },
         }],

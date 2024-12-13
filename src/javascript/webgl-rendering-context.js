@@ -351,7 +351,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
 
   _fixupLink (program) {
     if (!super.getProgramParameter(program._, gl.LINK_STATUS)) {
-      program._linkInfoLog = super.getProgramInfoLog(program)
+      program._linkInfoLog = super.getProgramInfoLog(program._)
       return false
     }
 
