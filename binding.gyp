@@ -11,7 +11,8 @@
     {
       'target_name': 'webgl',
       'defines': [
-        'VERSION=1.0.0'
+        'VERSION=1.0.0',
+        'NODE_ADDON_API_CPP_EXCEPTIONS=1'
       ],
       'sources': [
           'src/native/napibindings.cc',
