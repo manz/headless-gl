@@ -1,11 +1,4 @@
-const bits = require('bit-twiddle')
-const { WebGLContextAttributes } = require('./webgl-context-attributes')
-const { WebGLRenderingContext, wrapContext } = require('./webgl-rendering-context')
-const { WebGLTextureUnit } = require('./webgl-texture-unit')
-const { WebGLVertexArrayObjectState, WebGLVertexArrayGlobalState } = require('./webgl-vertex-attribute')
-const { gl, NativeWebGLRenderingContext, NativeWebGL } = require('./native-gl')
-
-
+const { WebGLRenderingContext } = require('./webgl-rendering-context')
 
 function createContext (width, height, options) {
   width = width | 0
@@ -21,7 +14,6 @@ function createContext (width, height, options) {
       height,
       options)
   } catch (e) {
-    debugger;
   }
   if (!ctx) {
     return null

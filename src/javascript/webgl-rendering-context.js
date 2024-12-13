@@ -1,7 +1,7 @@
 const bits = require('bit-twiddle')
 const tokenize = require('glsl-tokenizer/string')
 const HEADLESS_VERSION = require('../../package.json').version
-const { gl, NativeWebGLRenderingContext, NativeWebGL } = require('./native-gl')
+const { gl, NativeWebGLRenderingContext } = require('./native-gl')
 const { getANGLEInstancedArrays } = require('./extensions/angle-instanced-arrays')
 const { getOESElementIndexUint } = require('./extensions/oes-element-index-unit')
 const { getOESStandardDerivatives } = require('./extensions/oes-standard-derivatives')
@@ -110,7 +110,6 @@ function flag (options, name, dflt) {
 
 // We need to wrap some of the native WebGL functions to handle certain error codes and check input values
 class WebGLRenderingContext extends NativeWebGLRenderingContext {
-
   constructor (width, height, options) {
     width = width || 1
     height = height || 1
@@ -215,7 +214,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     const prototype = Object.getPrototypeOf(this)
     const properties = Object.getOwnPropertyDescriptors(prototype)
     for (const [k, v] of Object.entries(properties)) {
-      if (k !== "constructor") {
+      if (k !== 'constructor') {
         v.enumerable = true
         Object.defineProperty(prototype, k, v)
       }
