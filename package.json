@@ -1,5 +1,5 @@
 {
-  "name": "gl",
+  "name": "napi-gl",
   "version": "8.1.6",
   "description": "Creates a WebGL context without a window",
   "main": "index.js",
@@ -23,6 +23,7 @@
     "nan": "^2.22.0",
     "node-abi": "^3.71.0",
     "node-gyp": "^10.2.0",
+    "node-addon-api": "^8.3.0",
     "prebuild-install": "^7.1.2"
   },
   "devDependencies": {

@@ -11,14 +11,15 @@
     {
       'target_name': 'webgl',
       'defines': [
-        'VERSION=1.0.0'
+        'VERSION=1.0.0',
+        'NAPI_CPP_EXCEPTIONS'
       ],
       'sources': [
-          'src/native/bindings.cc',
-          'src/native/webgl.cc',
-          'src/native/procs.cc'
+          'src/native/napibindings.cc',
+          'src/native/webglnapi.cc'
       ],
       'include_dirs': [
+        "<!(node -e \"console.log(require('node-addon-api').include_dir)\")",
         "<!(node -e \"require('nan')\")",
         '<(module_root_dir)/deps/include',
         "angle/include"
@@ -42,7 +43,7 @@
               'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
               'MACOSX_DEPLOYMENT_TARGET':'10.8',
               'CLANG_CXX_LIBRARY': 'libc++',
-              'CLANG_CXX_LANGUAGE_STANDARD':'c++17',
+              'CLANG_CXX_LANGUAGE_STANDARD':'c++20',
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0'
             },
         }],
@@ -51,7 +52,10 @@
             [
               'angle/src/angle.gyp:libEGL',
               'angle/src/angle.gyp:libGLESv2'
-            ]
+            ],
+            'cflags+': [ '-std=c++20', '-fexceptions' ],
+            'cflags_c+': [ '-std=c++20', '-fexceptions' ],
+            'cflags_cc+': [ '-std=c++20', '-fexceptions' ],
         }],
         ['OS=="win"', {
             'library_dirs': [
