@@ -41,6 +41,9 @@ const { WebGLShader } = require('./webgl-shader')
 const { WebGLShaderPrecisionFormat } = require('./webgl-shader-precision-format')
 const { WebGLTexture } = require('./webgl-texture')
 const { WebGLUniformLocation } = require('./webgl-uniform-location')
+const { WebGLTextureUnit } = require('./webgl-texture-unit')
+const { WebGLVertexArrayObjectState, WebGLVertexArrayGlobalState } = require('./webgl-vertex-attribute')
+const { WebGLContextAttributes } = require('./webgl-context-attributes')
 
 // These are defined by the WebGL spec
 const MAX_UNIFORM_LENGTH = 256
@@ -76,7 +79,7 @@ const privateMethods = [
 ]
 
 function wrapContext (ctx) {
-  const wrapper = new WebGLRenderingContext()
+  const wrapper = {}
   bindPublics(Object.keys(ctx), wrapper, ctx, privateMethods)
   bindPublics(Object.keys(ctx.constructor.prototype), wrapper, ctx, privateMethods)
   bindPublics(Object.getOwnPropertyNames(ctx), wrapper, ctx, privateMethods)
@@ -96,8 +99,129 @@ function wrapContext (ctx) {
   return wrapper
 }
 
+let CONTEXT_COUNTER = 0
+
+function flag (options, name, dflt) {
+  if (!options || !(typeof options === 'object') || !(name in options)) {
+    return dflt
+  }
+  return !!options[name]
+}
+
 // We need to wrap some of the native WebGL functions to handle certain error codes and check input values
 class WebGLRenderingContext extends NativeWebGLRenderingContext {
+
+  constructor (width, height, options) {
+    width = width || 1
+    height = height || 1
+    const contextAttributes = new WebGLContextAttributes(
+      flag(options, 'alpha', true),
+      flag(options, 'depth', true),
+      flag(options, 'stencil', false),
+      false, // flag(options, 'antialias', false),
+      flag(options, 'premultipliedAlpha', true),
+      flag(options, 'preserveDrawingBuffer', false),
+      flag(options, 'preferLowPowerToHighPerformance', false),
+      flag(options, 'failIfMajorPerformanceCaveat', false))
+
+    // Can only use premultipliedAlpha if alpha is set
+    contextAttributes.premultipliedAlpha =
+      contextAttributes.premultipliedAlpha && contextAttributes.alpha
+
+    super(1, 1,
+      contextAttributes.alpha,
+      contextAttributes.depth,
+      contextAttributes.stencil,
+      contextAttributes.antialias,
+      contextAttributes.premultipliedAlpha,
+      contextAttributes.preserveDrawingBuffer,
+      contextAttributes.preferLowPowerToHighPerformance,
+      contextAttributes.failIfMajorPerformanceCaveat)
+
+    this._markEverythingEnumerable()
+
+    this.drawingBufferWidth = width
+
+    this.drawingBufferHeight = height
+    this._ = CONTEXT_COUNTER++
+
+    this._contextAttributes = contextAttributes
+
+    this._extensions = {}
+
+    this._programs = {}
+    this._shaders = {}
+    this._buffers = {}
+    this._textures = {}
+    this._framebuffers = {}
+    this._renderbuffers = {}
+    this._activeProgram = null
+
+    this._activeFramebuffer = null
+    this._activeRenderbuffer = null
+    this._checkStencil = false
+    this._stencilState = true
+    // Initialize texture units
+
+    const numTextures = this.getParameter(this.MAX_COMBINED_TEXTURE_IMAGE_UNITS)
+    this._textureUnits = new Array(numTextures)
+    for (let i = 0; i < numTextures; ++i) {
+      this._textureUnits[i] = new WebGLTextureUnit(i)
+    }
+    this._activeTextureUnit = 0
+    this.activeTexture(this.TEXTURE0)
+    this._errorStack = []
+
+    // Vertex array attributes that are in vertex array objects.
+
+    this._defaultVertexObjectState = new WebGLVertexArrayObjectState(this)
+    this._vertexObjectState = this._defaultVertexObjectState
+    // Vertex array attributes that are not in vertex array objects.
+
+    this._vertexGlobalState = new WebGLVertexArrayGlobalState(this)
+
+    // Store limits
+    this._maxTextureSize = this.getParameter(this.MAX_TEXTURE_SIZE)
+    this._maxTextureLevel = bits.log2(bits.nextPow2(this._maxTextureSize))
+    this._maxCubeMapSize = this.getParameter(this.MAX_CUBE_MAP_TEXTURE_SIZE)
+    this._maxCubeMapLevel = bits.log2(bits.nextPow2(this._maxCubeMapSize))
+
+    // Unpack alignment
+    this._unpackAlignment = 4
+    this._packAlignment = 4
+
+    // Allocate framebuffer
+    this._allocateDrawingBuffer(width, height)
+    this._attrib0Buffer = this.createBuffer()
+
+    // Initialize defaults
+    this.bindBuffer(this.ARRAY_BUFFER, null)
+    this.bindBuffer(this.ELEMENT_ARRAY_BUFFER, null)
+    this.bindFramebuffer(this.FRAMEBUFFER, null)
+    this.bindRenderbuffer(this.RENDERBUFFER, null)
+
+    // Set viewport and scissor
+    this.viewport(0, 0, width, height)
+    this.scissor(0, 0, width, height)
+
+    // Clear buffers
+    this.clearDepth(1)
+    this.clearColor(0, 0, 0, 0)
+    this.clearStencil(0)
+    this.clear(this.COLOR_BUFFER_BIT | this.DEPTH_BUFFER_BIT | this.STENCIL_BUFFER_BIT)
+  }
+
+  _markEverythingEnumerable () {
+    const prototype = Object.getPrototypeOf(this)
+    const properties = Object.getOwnPropertyDescriptors(prototype)
+    for (const [k, v] of Object.entries(properties)) {
+      if (k !== "constructor") {
+        v.enumerable = true
+        Object.defineProperty(prototype, k, v)
+      }
+    }
+  }
+
   _checkDimensions (
     target,
     width,
@@ -792,7 +916,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     }
 
     if (this._extensions.webgl_draw_buffers) { // eslint-disable-line
-      const { webgl_draw_buffers } = this._extensions; // eslint-disable-line
+      const { webgl_draw_buffers } = this._extensions // eslint-disable-line
       return attachment < (webgl_draw_buffers.COLOR_ATTACHMENT0_WEBGL + webgl_draw_buffers._maxDrawBuffers) // eslint-disable-line
     }
 
@@ -1237,7 +1361,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
   }
 
   setError (error) {
-    NativeWebGL.setError.call(this, error | 0)
+    super.setError(error | 0)
   }
 
   blendFunc (sfactor, dfactor) {
@@ -2356,7 +2480,7 @@ class WebGLRenderingContext extends NativeWebGLRenderingContext {
     precisionType |= 0
 
     if (!(shaderType === gl.FRAGMENT_SHADER ||
-      shaderType === gl.VERTEX_SHADER) ||
+        shaderType === gl.VERTEX_SHADER) ||
       !(precisionType === gl.LOW_FLOAT ||
         precisionType === gl.MEDIUM_FLOAT ||
         precisionType === gl.HIGH_FLOAT ||
