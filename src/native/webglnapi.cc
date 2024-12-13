@@ -1,4 +1,4 @@
-#include "webglnapi.h"
+#include "webglnapi.hh"
 #include <iostream>
 #include <sstream>
 
