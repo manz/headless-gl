@@ -21,7 +21,15 @@ Napi::Value WebGLRenderingContext::DisposeAll(const Napi::CallbackInfo &info) {
     return info.Env().Undefined();
 }
 
-
+void WebGLRenderingContext::setError(GLenum error) {
+  if (error == GL_NO_ERROR || lastError != GL_NO_ERROR) {
+    return;
+  }
+  GLenum prevError = (this->glGetError)();
+  if (prevError == GL_NO_ERROR) {
+    lastError = error;
+  }
+}
 
 WebGLRenderingContext::WebGLRenderingContext(const Napi::CallbackInfo &info) :
     Napi::ObjectWrap<WebGLRenderingContext>(info), state(GLCONTEXT_STATE_INIT), unpack_flip_y(false),
@@ -202,13 +210,7 @@ Napi::Value WebGLRenderingContext::SetError(const Napi::CallbackInfo &info) {
     Napi::Number value = info[0].As<Napi::Number>();
     int error = value.Uint32Value();
 
-    if (error == GL_NO_ERROR || lastError != GL_NO_ERROR) {
-        return env.Undefined();
-    }
-    GLenum prevError = (this->glGetError)();
-    if (prevError == GL_NO_ERROR) {
-        lastError = error;
-    }
+  	this->setError(error);
 
     return env.Undefined();
 }
