@@ -52,7 +52,10 @@
             [
               'angle/src/angle.gyp:libEGL',
               'angle/src/angle.gyp:libGLESv2'
-            ]
+            ],
+            'cflags+': [ '-std=c++20', '-fexceptions' ],
+            'cflags_c+': [ '-std=c++20', '-fexceptions' ],
+            'cflags_cc+': [ '-std=c++20', '-fexceptions' ],
         }],
         ['OS=="win"', {
             'library_dirs': [
