@@ -1358,7 +1358,7 @@ Napi::Value WebGLRenderingContext::GetParameter(const Napi::CallbackInfo &info) 
 
 Napi::Value WebGLRenderingContext::BindRenderbuffer(const Napi::CallbackInfo &info) {
     GLenum target = info[0].As<Napi::Number>().Uint32Value();
-    GLuint buffer = info[0].As<Napi::Number>().Uint32Value();
+    GLuint buffer = info[1].As<Napi::Number>().Uint32Value();
 
     this->glBindRenderbuffer(target, buffer);
 
